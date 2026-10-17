@@ -1,6 +1,7 @@
+use std::fs;
+
 fn main() {
-    println!("Hello, world!");
-    for _i in 1..5 {
-        println!("again!");
-    }
+    // Reads data from file
+    let data = fs::read_to_string("src/example.v").expect("Failed to read file");
+    println!("{data}");
 }
