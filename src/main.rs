@@ -8,7 +8,7 @@ fn main() {
     let expression = fs::read_to_string("src/example.v").expect("Failed to read file");
 
     let tokens = tokenize(expression);
-    println!("{tokens}");
+    let _ast = parse(tokens);
 }
 
 // I think I might be going about this wrong. My first goal should be to just implement addition
@@ -16,18 +16,22 @@ fn main() {
 // allow me to truly understand and learn rust without having to deal with basically needing to ask
 // the chatbot.
 
-fn tokenize(expression: String) -> String {
+fn tokenize(expression: String) -> Vec<HashMap<String, String>> {
     let mut line = 1;
     let mut column = 1;
-    let mut current_tag = String::new();
 
     let mut tokens: Vec<HashMap<String, String>> = Vec::new();
-
-    println!("Test");
 
     for x in expression.chars() {
         // Makes empty dictionary / hashmap
         let mut dict = HashMap::new();
+
+        // Checks for newline
+        if x == '\n' {
+            line += 1;
+            column = 1;
+            continue;
+        }
 
         // Checks the patterns (very bad)
         if x == '*' {
@@ -50,7 +54,14 @@ fn tokenize(expression: String) -> String {
             );
         }
         tokens.push(dict);
+
+        column += 1;
     }
 
-    return current_tag;
+    return tokens;
+}
+
+fn parse(tokens: Vec<HashMap<String, String>>) -> Vec<HashMap<String, String>> {
+    println!("AHH");
+    return tokens;
 }
