@@ -91,6 +91,7 @@ fn print_layered(layers: u32, text: String) {
     print!("{}{}", line, text);
 }
 
+// Done unless I add (
 fn parse_factor(
     tokens: Vec<HashMap<String, String>>,
 ) -> (HashMap<String, String>, Vec<HashMap<String, String>>) {
@@ -115,6 +116,8 @@ fn parse_factor(
         return (node, tokens_temp);
     }
 
+    // I need to add ( at some point here
+
     panic!("Got to the end of parse_factor");
 }
 
@@ -132,15 +135,40 @@ fn parse_unary(
 fn parse_term(
     tokens: Vec<HashMap<String, String>>,
 ) -> (HashMap<String, String>, Vec<HashMap<String, String>>) {
+    // Makes dictionaries
     let mut left = HashMap::<String, String>::new();
+    let mut op = HashMap::<String, String>::new();
+    let mut right = HashMap::<String, String>::new();
+
     let mut tokens_copy = tokens.clone();
 
     (left, tokens_copy) = parse_unary(tokens_copy.clone());
 
-    let mut token: HashMap<String, String> = tokens_copy[0].clone();
+    loop {
+        // Gets the first token
+        let mut token: HashMap<String, String> = tokens_copy[0].clone();
+        print!("parse_term token -> ");
+        print_token(token.clone());
 
-    print!("parse_term token -> ");
-    print_token(token.clone());
+        if token["tag"] != "*" {
+            break;
+        }
+
+        op.insert("op".to_string(), token["tag"].to_string());
+
+        // Removes the first element from tokens_copy
+        tokens_copy.remove(0);
+
+        (right, tokens_copy) = parse_unary(tokens_copy);
+
+        // Creating new left
+        let mut old_left: HashMap<String, String> = left.clone();
+        left.clear();
+
+        //left.insert("tag".to_string(), op);
+        //left.insert("left".to_string(), old_left);
+        //left.insert("right".to_string(), right);
+    }
 
     return (left, tokens_copy);
 }
