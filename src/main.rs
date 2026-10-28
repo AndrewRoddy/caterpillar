@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fs;
+use std::io::Write;
 
 const DEV: bool = true;
 
@@ -10,11 +11,6 @@ fn main() {
     let tokens = tokenize(expression);
     let ast = parse(tokens);
 }
-
-// I think I might be going about this wrong. My first goal should be to just implement addition
-// and subtraction maybe even without the regex, then slowly move to needing the regex. This will
-// allow me to truly understand and learn rust without having to deal with basically needing to ask
-// the chatbot.
 
 fn tokenize(expression: String) -> Vec<HashMap<String, String>> {
     let mut line = 1;
@@ -34,12 +30,19 @@ fn tokenize(expression: String) -> Vec<HashMap<String, String>> {
         }
 
         // Checks the patterns (very bad)
-        if x == '*' {
+        if x.to_digit(10) != None {
+            dict.insert("tag".to_string(), "number".to_string());
+            dict.insert("value".to_string(), x.to_string());
+        } else if x == '*' {
             dict.insert("tag".to_string(), "*".to_string());
         } else if x == '+' {
             dict.insert("tag".to_string(), "+".to_string());
         } else {
-            dict.insert("tag".to_string(), "number".to_string());
+            dict.insert("tag".to_string(), "None".to_string());
+        }
+
+        if !dict.contains_key("value") {
+            dict.insert("value".to_string(), "null".to_string());
         }
 
         // Inserts the line and column counts
@@ -49,10 +52,11 @@ fn tokenize(expression: String) -> Vec<HashMap<String, String>> {
         // Runs a test print if in dev mode
         if DEV {
             println!(
-                "| line: {} | column: {} | tag: {} ",
-                dict["line"], dict["column"], dict["tag"],
+                "| line: {} | column: {} | tag: {} | value: {} |",
+                dict["line"], dict["column"], dict["tag"], dict["value"],
             );
         }
+
         tokens.push(dict);
 
         column += 1;
@@ -61,77 +65,113 @@ fn tokenize(expression: String) -> Vec<HashMap<String, String>> {
     return tokens;
 }
 
-fn parse_factor(
-    tokens: Vec<HashMap<String, String>>,
-) -> (HashMap<String, String>, Vec<HashMap<String, String>>) {
-    let mut node = HashMap::new();
-    let mut token: HashMap<String, String> = tokens[0].clone();
-    if token["tag"] == "number" {
-        node.insert("tag".to_string(), "number".to_string());
-        node.insert("value".to_string(), token["value"].clone());
+fn print_ast(ast: Vec<HashMap<String, String>>, layers: u32) {
+    println!("AST: ");
+    for node in ast {
+        // Pulls out values of keys
+        let tag = node["tag"].to_string();
+        let value = node["value"].to_string();
 
-        // Removes first element of tokens
-        let mut tokens_temp: Vec<HashMap<String, String>> = tokens.clone();
-        tokens_temp.remove(0);
+        print_layered(layers, tag.clone());
+        if tag == "number" {
+            print!(" ({})", value);
+        }
 
-        return (node, tokens_temp);
+        println!(); // Prints newline
+
+        //let val = node["value"].to_string();
+        //if tag == "None" {
+        //    continue;
+        //}
+        //if val == "null" {
+        //    print!("{} ", tag);
+        //} else {
+        //    print!("{} ", val);
+        //}
     }
-    return (node, tokens);
 }
 
-fn parse_unary(
-    tokens: Vec<HashMap<String, String>>,
-) -> (HashMap<String, String>, Vec<HashMap<String, String>>) {
-    let mut node = HashMap::new();
-    let mut tokens_temp: Vec<HashMap<String, String>> = Vec::new();
-    (node, tokens_temp) = parse_factor(tokens);
-
-    return (node, tokens_temp);
+fn print_layered(layers: u32, text: String) {
+    // Builds the line before printing
+    let mut line = String::new();
+    for _ in 1..layers {
+        line += "| ";
+    }
+    print!("{}{}", line, text);
 }
+
+// fn parse_factor(
+// tokens: Vec<HashMap<String, String>>,
+// ) -> (HashMap<String, String>, Vec<HashMap<String, String>>) {
+// let mut node = HashMap::new();
+// let mut token: HashMap<String, String> = tokens[0].clone();
+// if token["tag"] == "number" {
+// node.insert("tag".to_string(), "number".to_string());
+// node.insert("value".to_string(), token["value"].clone());
+//
+// // Removes first element of tokens
+// let mut tokens_temp: Vec<HashMap<String, String>> = tokens.clone();
+// tokens_temp.remove(0);
+//
+// return (node, tokens_temp);
+// }
+// return (node, tokens);
+// }
+
+// fn parse_unary(
+// tokens: Vec<HashMap<String, String>>,
+// ) -> (HashMap<String, String>, Vec<HashMap<String, String>>) {
+// let mut node = HashMap::new();
+// let mut tokens_temp: Vec<HashMap<String, String>> = Vec::new();
+// (node, tokens_temp) = parse_factor(tokens);
+//
+// return (node, tokens_temp);
+// }
 
 fn parse_term(
     tokens: Vec<HashMap<String, String>>,
 ) -> (HashMap<String, String>, Vec<HashMap<String, String>>) {
-    let mut left = HashMap::new();
+    let mut left = HashMap::<String, String>::new();
     return (left, tokens);
 }
 
 fn parse_expression(
     tokens: Vec<HashMap<String, String>>,
 ) -> (Vec<HashMap<String, String>>, Vec<HashMap<String, String>>) {
-    let mut left = HashMap::new();
+    // Initializes variables
+    let mut left: HashMap<String, String> = HashMap::new();
     let mut op: HashMap<String, String> = HashMap::new();
-    let mut right = HashMap::new();
+    let mut right: HashMap<String, String> = HashMap::new();
 
     // Makes another copy of tokens
     let mut tokens_copy = tokens.clone();
 
     (left, tokens_copy) = parse_term(tokens_copy);
-    while tokens_copy[0]["tag"] == "+".to_string() || tokens_copy[0]["tag"] == "-".to_string() {
-        let op_str = tokens_copy[0]["tag"].to_string();
-        println!("OP_STR: {}", op_str);
+    //while tokens_copy[0]["tag"] == "+".to_string() || tokens_copy[0]["tag"] == "-".to_string() {
+    //let op_str = tokens_copy[0]["tag"].to_string();
+    //println!("OP_STR: {}", op_str);
 
-        // Makes a copy of tokens
-        let mut tokens_temp: Vec<HashMap<String, String>> = tokens_copy.clone();
-        tokens_temp.remove(0);
+    // Makes a copy of tokens
+    //let mut tokens_temp: Vec<HashMap<String, String>> = tokens_copy.clone();
+    //tokens_temp.remove(0);
 
-        (right, tokens_copy) = parse_term(tokens_temp);
+    //(right, tokens_copy) = parse_term(tokens_temp);
 
-        // Makes op its own vector to keep all of the types the same
-        // let mut op_vec: Vec<HashMap<String, String>> = Vec::new();
-        // let mut op_dict: HashMap<String, String> = HashMap::new();
-        // op_dict.insert("tag".to_string(), op.to_string());
-        // op_vec.push(op_dict);
+    // Makes op its own vector to keep all of the types the same
+    // let mut op_vec: Vec<HashMap<String, String>> = Vec::new();
+    // let mut op_dict: HashMap<String, String> = HashMap::new();
+    // op_dict.insert("tag".to_string(), op.to_string());
+    // op_vec.push(op_dict);
 
-        // Adds values of tag, left, and right to new hashmap
-        // let mut dict = HashMap::new();
-        // dict.insert("tag".to_string(), op_vec);
-        // dict.insert("left".to_string(), left);
-        // dict.insert("right".to_string(), right);
-        //
-        // left.clear(); // Clears out left before pushing in the new dictionary
-        // left.push(dict);
-    }
+    // Adds values of tag, left, and right to new hashmap
+    // let mut dict = HashMap::new();
+    // dict.insert("tag".to_string(), op_vec);
+    // dict.insert("left".to_string(), left);
+    // dict.insert("right".to_string(), right);
+    //
+    // left.clear(); // Clears out left before pushing in the new dictionary
+    // left.push(dict);
+    //}
     return (tokens_copy.clone(), tokens_copy);
 }
 
