@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::fs;
-use std::io::Write;
 
 #[derive(Clone)]
 enum Node {
@@ -20,6 +19,8 @@ fn main() {
 
     let tokens = tokenize(expression);
     let ast = parse(tokens);
+    let result = evaluate(ast);
+    println!("Result: {}", result);
 }
 
 fn tokenize(expression: String) -> Vec<HashMap<String, String>> {
@@ -92,15 +93,6 @@ fn print_token(token: HashMap<String, String>) {
     println!(); // prints newline
 }
 
-fn print_layered(layers: u32, text: String) {
-    // Builds the line before printing
-    let mut line = String::new();
-    for _ in 1..layers {
-        line += "| ";
-    }
-    print!("{}{}", line, text);
-}
-
 fn print_node(item: Node) {
     if let Node::Fork { op, left, right } = item {
         println!("{}", op);
@@ -114,7 +106,7 @@ fn print_node(item: Node) {
 // Done unless I add (
 fn parse_factor(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<String, String>>) {
     // Gets the first token
-    let mut token: HashMap<String, String> = tokens[0].clone();
+    let token: HashMap<String, String> = tokens[0].clone();
     print!("parse_factor token -> ");
     print_token(token.clone());
 
@@ -134,7 +126,7 @@ fn parse_factor(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<Stri
 
 // Done (unless I add -1)
 fn parse_unary(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<String, String>>) {
-    let (mut node, mut tokens_temp) = parse_factor(tokens);
+    let (node, tokens_temp) = parse_factor(tokens);
     // Done (unless I add -1)
     return (node, tokens_temp);
 }
@@ -147,7 +139,7 @@ fn parse_term(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<String
 
     loop {
         // Gets the first token
-        let mut token: HashMap<String, String> = tokens_copy[0].clone();
+        let token: HashMap<String, String> = tokens_copy[0].clone();
         print!("parse_term token -> ");
         print_token(token.clone());
 
@@ -157,7 +149,7 @@ fn parse_term(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<String
         }
 
         tokens_copy.remove(0); // Removes first element from tokens
-        let (mut right_temp, tokens_copy) = parse_unary(tokens_copy.clone());
+        let (right_temp, _tokens_copy) = parse_unary(tokens_copy.clone());
 
         left = Node::Fork {
             op: token["tag"].clone(),
@@ -188,7 +180,7 @@ fn parse_expression(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<
     print_node(left.clone());
 
     loop {
-        let mut token = tokens_copy[0].clone();
+        let token = tokens_copy[0].clone();
 
         if token["tag"] != '+'.to_string() {
             break;
@@ -199,7 +191,7 @@ fn parse_expression(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<
 
         tokens_copy.remove(0); // [1:] equivalent
 
-        let (mut right, tokens_copy) = parse_term(tokens_copy.clone());
+        let (right, _tokens_copy) = parse_term(tokens_copy.clone());
 
         left = Node::Fork {
             op: token["tag"].clone(),
@@ -220,8 +212,27 @@ fn parse_expression(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<
 }
 
 fn parse(tokens: Vec<HashMap<String, String>>) -> Node {
-    let (mut ast, mut output_tokens) = parse_expression(tokens);
+    let (ast, _output_tokens) = parse_expression(tokens);
     println!("Printing ast before return");
     print_node(ast.clone());
     return ast;
+}
+
+fn evaluate(ast: Node) -> u32 {
+    // Gets the tags value
+    if let Node::Fork { op, left, right } = ast.clone() {
+        let tag = op.to_string();
+        if tag == "+" {
+            return evaluate(*left) + evaluate(*right);
+        } else if tag == "*" {
+            return evaluate(*left) * evaluate(*right);
+        }
+    }
+
+    // If it is a number, return the number
+    if let Node::Value(v) = ast {
+        let total = v.parse::<i32>().unwrap();
+        return total.try_into().unwrap();
+    }
+    panic!();
 }
