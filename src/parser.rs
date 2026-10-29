@@ -49,7 +49,8 @@ fn parse_term(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<String
         print_token(token.clone());
 
         // while token == *
-        if token["tag"] != "*" {
+        // Makes sure we don't run out of tokens
+        if tokens_copy.is_empty() || token["tag"] != "*" {
             break;
         }
 
@@ -88,7 +89,8 @@ fn parse_expression(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<
     loop {
         let token = tokens_copy[0].clone();
 
-        if token["tag"] != '+'.to_string() {
+        // Makes sure we don't run out of tokens
+        if tokens_copy.is_empty() || token["tag"] != '+'.to_string() {
             break;
         }
 
