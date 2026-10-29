@@ -54,7 +54,8 @@ fn parse_term(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<String
         }
 
         tokens_copy.remove(0); // Removes first element from tokens
-        let (right_temp, _tokens_copy) = parse_unary(tokens_copy.clone());
+        let right_temp: Node;
+        (right_temp, tokens_copy) = parse_unary(tokens_copy.clone());
 
         left = Node::Fork {
             op: token["tag"].clone(),
@@ -96,7 +97,8 @@ fn parse_expression(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<
 
         tokens_copy.remove(0); // [1:] equivalent
 
-        let (right, _tokens_copy) = parse_term(tokens_copy.clone());
+        let right: Node;
+        (right, tokens_copy) = parse_term(tokens_copy.clone());
 
         left = Node::Fork {
             op: token["tag"].clone(),
