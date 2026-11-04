@@ -6,7 +6,7 @@ mod tokenizer;
 
 fn main() {
     // Reads data from file
-    let expression = fs::read_to_string("src/example.v").expect("Failed to read file");
+    let expression = fs::read_to_string("samples/example.v").expect("Failed to read file");
 
     let tokens = tokenizer::tokenize(expression);
     let ast = parser::parse(tokens);
