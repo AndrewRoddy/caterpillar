@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+const TEST: bool = false;
+
 pub fn tokenize(expression: String) -> Vec<HashMap<String, String>> {
     let mut line = 1;
     let mut column = 1;
@@ -38,10 +40,12 @@ pub fn tokenize(expression: String) -> Vec<HashMap<String, String>> {
         dict.insert("column".to_string(), column.to_string());
 
         // Runs a test print if in dev mode
-        println!(
-            "| line: {} | column: {} | tag: {} | value: {} |",
-            dict["line"], dict["column"], dict["tag"], dict["value"],
-        );
+        if TEST {
+            println!(
+                "| line: {} | column: {} | tag: {} | value: {} |",
+                dict["line"], dict["column"], dict["tag"], dict["value"],
+            );
+        }
 
         tokens.push(dict);
 

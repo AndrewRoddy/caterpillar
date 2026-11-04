@@ -1,10 +1,13 @@
 use crate::ast::Node;
 use std::collections::HashMap;
 
+const TEST: bool = false;
+
 pub fn parse(tokens: Vec<HashMap<String, String>>) -> Node {
     let (ast, _output_tokens) = parse_expression(tokens);
-    println!("Printing ast before return");
-    print_node(ast.clone());
+    if TEST {
+        print_node(ast.clone())
+    };
     return ast;
 }
 
@@ -12,8 +15,10 @@ pub fn parse(tokens: Vec<HashMap<String, String>>) -> Node {
 fn parse_factor(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<String, String>>) {
     // Gets the first token
     let token: HashMap<String, String> = tokens[0].clone();
-    print!("parse_factor token -> ");
-    print_token(token.clone());
+    if TEST {
+        print_tokens(tokens.clone());
+        print_token(token.clone());
+    }
 
     // If the token is a number
     if token["tag"] == "number" {
@@ -39,14 +44,13 @@ fn parse_unary(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<Strin
 fn parse_term(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<String, String>>) {
     // Makes dictionaries
     let (mut left, mut tokens_copy) = parse_unary(tokens.clone());
-    println!("Printing left at start of parse_term");
-    print_node(left.clone());
+    if TEST {
+        print_node(left.clone());
+    }
 
     loop {
         // Gets the first token
         let token: HashMap<String, String> = tokens_copy[0].clone();
-        print!("parse_term token -> ");
-        print_token(token.clone());
 
         // while token == *
         // Makes sure we don't run out of tokens
@@ -63,28 +67,13 @@ fn parse_term(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<String
             left: Box::new(left.clone()),
             right: Box::new(right_temp.clone()),
         };
-
-        // Prints left
-        println!("Printing left in loop in parse_term");
-        print_node(left.clone());
-
-        // Prints right
-        println!("Printing right in loop in parse_term");
-        print_node(right_temp.clone());
     }
 
     return (left, tokens_copy);
 }
 
 fn parse_expression(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<String, String>>) {
-    // Prints tokens
-    println!("Start of parse_expression");
-    print_tokens(tokens.clone());
-
     let (mut left, mut tokens_copy) = parse_term(tokens.clone());
-
-    println!("Printing left in parse_expression");
-    print_node(left.clone());
 
     loop {
         let token = tokens_copy[0].clone();
@@ -93,9 +82,6 @@ fn parse_expression(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<
         if tokens_copy.is_empty() || token["tag"] != '+'.to_string() {
             break;
         }
-
-        println!("In loop in parse_expression.");
-        print_token(token.clone());
 
         tokens_copy.remove(0); // [1:] equivalent
 
@@ -107,14 +93,6 @@ fn parse_expression(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<
             left: Box::new(left.clone()),
             right: Box::new(right.clone()),
         };
-
-        // Prints left
-        println!("Printing left in loop in parse_expression");
-        print_node(left.clone());
-
-        // Prints right
-        println!("Printing right in loop in parse_expression");
-        print_node(right.clone());
     }
 
     return (left, tokens_copy);
