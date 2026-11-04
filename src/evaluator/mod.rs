@@ -18,3 +18,6 @@ pub fn evaluate(ast: Node) -> u32 {
     }
     panic!();
 }
+
+#[cfg(test)]
+mod tests;
