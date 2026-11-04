@@ -115,7 +115,7 @@ fn print_token(token: HashMap<String, String>) {
     println!(); // prints newline
 }
 
-fn print_node(item: Node) {
+pub fn print_node(item: Node) {
     if let Node::Fork { op, left, right } = item {
         println!("{}", op);
         print_node(*left);

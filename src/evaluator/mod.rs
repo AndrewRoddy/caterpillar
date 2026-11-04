@@ -6,8 +6,12 @@ pub fn evaluate(ast: Node) -> u32 {
         let tag = op.to_string();
         if tag == "+" {
             return evaluate(*left) + evaluate(*right);
+        } else if tag == "-" {
+            return evaluate(*left) - evaluate(*right);
         } else if tag == "*" {
             return evaluate(*left) * evaluate(*right);
+        } else if tag == "/" {
+            return evaluate(*left) / evaluate(*right);
         }
     }
 
@@ -16,7 +20,7 @@ pub fn evaluate(ast: Node) -> u32 {
         let total = v.parse::<i32>().unwrap();
         return total.try_into().unwrap();
     }
-    panic!();
+    panic!("Unknown AST node");
 }
 
 #[cfg(test)]
