@@ -5,3 +5,21 @@ version = 4
 [[package]]
 name = "caterpillar"
 version = "0.1.0"
+dependencies = [
+ "monster-regex",
+]
+
+[[package]]
+name = "memchr"
+version = "2.8.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
+
+[[package]]
+name = "monster-regex"
+version = "0.2.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ea3d339887120008d154419f0355b8e3f5eb50b7a36b81469dc7d9d68f648cb"
+dependencies = [
+ "memchr",
+]
