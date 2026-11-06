@@ -8,11 +8,12 @@ fn get_patterns() -> Vec<Vec<String>> {
     let patterns: Vec<Vec<String>> = LazyLock::new(|| {
         vec![
             vec![
-                r"(\d*\.\d+)|(\d+\.\d*|\d+)".to_string(),
+                r"^(\d*\.\d+)|^(\d+\.\d*|\d+)".to_string(),
                 "number".to_string(),
             ],
-            vec![r"\+".to_string(), "+".to_string()],
-            vec![r"\*".to_string(), "*".to_string()],
+            vec![r"^\+".to_string(), "+".to_string()],
+            vec![r"^\*".to_string(), "*".to_string()],
+            vec![r"^.".to_string(), "error".to_string()],
         ]
     })
     .to_vec();
@@ -21,22 +22,15 @@ fn get_patterns() -> Vec<Vec<String>> {
 }
 
 pub fn tokenize(expression: String) -> Vec<HashMap<String, String>> {
-    let mut line = 1;
+    let line = 1;
     let mut column = 1;
     let mut tokens: Vec<HashMap<String, String>> = Vec::new();
 
-    let ex: String = expression.clone();
+    let mut ex: String = expression.clone();
 
-    for x in expression.chars() {
-        if x == '\n' {
-            line += 1;
-            column = 1;
-            continue;
-        }
-
+    loop {
         // Makes empty dictionary / hashmap
         let mut dict = HashMap::new();
-
         let patterns = get_patterns();
 
         // Defaults tag to None
@@ -50,36 +44,37 @@ pub fn tokenize(expression: String) -> Vec<HashMap<String, String>> {
             let re = Regex::new(&regex, Flags::default()).unwrap();
 
             // Checks if regex matches the character
-            if re.is_match(&x.to_string()) {
+            if re.is_match(&ex.to_string()) {
                 dict.insert("tag".to_string(), tag.to_string());
 
                 // Pulls out the number
-                if let Some(m) = re.find(&x.to_string()) {
-                    let val = &x.to_string()[m.start..m.end];
-                    if TEST {
-                        println!("{} with tag {}", val, tag);
-                    }
-                    // Gets values from numbers
-                    if tag == "number" {
-                        println!("    value: {}", val);
-                        dict.insert("value".to_string(), x.to_string());
-                    }
-                }
+                if let Some(m) = re.find(&ex.to_string()) {
+                    // Pulls the value from the number
+                    let val = &ex.to_string()[m.start..m.end];
 
+                    // Sets value
+                    if tag == "number" {
+                        dict.insert("value".to_string(), val.to_string());
+                    } else {
+                        dict.insert("value".to_string(), "null".to_string());
+                    }
+
+                    if TEST {
+                        println!("val {} with tag {}", val, tag);
+                    }
+                    ex = ex[m.end..].to_string();
+                }
                 break;
             }
-        }
-
-        // Checks the patterns (very bad)
-        if x.to_digit(10) != None {}
-
-        if !dict.contains_key("value") {
-            dict.insert("value".to_string(), "null".to_string());
         }
 
         // Inserts the line and column counts
         dict.insert("line".to_string(), line.to_string());
         dict.insert("column".to_string(), column.to_string());
+
+        if dict["tag"] == "None".to_string() {
+            break;
+        }
 
         tokens.push(dict);
 
