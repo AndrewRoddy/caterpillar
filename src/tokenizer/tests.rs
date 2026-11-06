@@ -22,3 +22,20 @@ fn test_operators() {
         assert_eq!(tokens[i]["tag"], tags[i]);
     }
 }
+
+#[test]
+fn test_expressions() {
+    let tokens = tokenize("1+222*3".to_string());
+    assert_eq!(tokens[0]["tag"], "number".to_string());
+    assert_eq!(tokens[0]["value"], "1".to_string());
+
+    assert_eq!(tokens[1]["tag"], "+".to_string());
+    assert_eq!(tokens[2]["tag"], "number".to_string());
+    assert_eq!(tokens[2]["value"], "222".to_string());
+
+    assert_eq!(tokens[3]["tag"], "*".to_string());
+    assert_eq!(tokens[4]["tag"], "number".to_string());
+    assert_eq!(tokens[4]["value"], "3");
+
+    assert_eq!(tokens[5]["tag"], "None".to_string());
+}
