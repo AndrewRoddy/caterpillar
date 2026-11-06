@@ -7,7 +7,10 @@ const TEST: bool = true;
 fn get_patterns() -> Vec<Vec<String>> {
     let patterns: Vec<Vec<String>> = LazyLock::new(|| {
         vec![
-            vec![r"\d*\.\d+|\d+\.\d*|\d+".to_string(), "number".to_string()],
+            vec![
+                r"(\d*\.\d+)|(\d+\.\d*|\d+)".to_string(),
+                "number".to_string(),
+            ],
             vec![r"\+".to_string(), "+".to_string()],
             vec![r"\*".to_string(), "*".to_string()],
         ]
@@ -20,19 +23,19 @@ fn get_patterns() -> Vec<Vec<String>> {
 pub fn tokenize(expression: String) -> Vec<HashMap<String, String>> {
     let mut line = 1;
     let mut column = 1;
-
     let mut tokens: Vec<HashMap<String, String>> = Vec::new();
 
-    for x in expression.chars() {
-        // Makes empty dictionary / hashmap
-        let mut dict = HashMap::new();
+    let ex: String = expression.clone();
 
-        // Checks for newline
+    for x in expression.chars() {
         if x == '\n' {
             line += 1;
             column = 1;
             continue;
         }
+
+        // Makes empty dictionary / hashmap
+        let mut dict = HashMap::new();
 
         let patterns = get_patterns();
 
@@ -48,18 +51,27 @@ pub fn tokenize(expression: String) -> Vec<HashMap<String, String>> {
 
             // Checks if regex matches the character
             if re.is_match(&x.to_string()) {
-                if TEST {
-                    println!("{} with tag {}", x, tag);
-                }
                 dict.insert("tag".to_string(), tag.to_string());
+
+                // Pulls out the number
+                if let Some(m) = re.find(&x.to_string()) {
+                    let val = &x.to_string()[m.start..m.end];
+                    if TEST {
+                        println!("{} with tag {}", val, tag);
+                    }
+                    // Gets values from numbers
+                    if tag == "number" {
+                        println!("    value: {}", val);
+                        dict.insert("value".to_string(), x.to_string());
+                    }
+                }
+
                 break;
             }
         }
 
         // Checks the patterns (very bad)
-        if x.to_digit(10) != None {
-            dict.insert("value".to_string(), x.to_string());
-        }
+        if x.to_digit(10) != None {}
 
         if !dict.contains_key("value") {
             dict.insert("value".to_string(), "null".to_string());
