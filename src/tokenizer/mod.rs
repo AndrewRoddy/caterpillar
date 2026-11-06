@@ -7,12 +7,22 @@ const TEST: bool = true;
 fn get_patterns() -> Vec<Vec<String>> {
     let patterns: Vec<Vec<String>> = LazyLock::new(|| {
         vec![
+            vec![r"^\s+".to_string(), "whitespace".to_string()],
+            vec![r"^//[^\r\n]*".to_string(), "comment".to_string()],
+            // Digits
             vec![
                 r"^(\d*\.\d+)|^(\d+\.\d*|\d+)".to_string(),
                 "number".to_string(),
             ],
+            // Operators
             vec![r"^\+".to_string(), "+".to_string()],
+            vec![r"^\-".to_string(), "-".to_string()],
+            vec![r"^\/".to_string(), "/".to_string()],
             vec![r"^\*".to_string(), "*".to_string()],
+            // Parenthesis
+            vec![r"^\(".to_string(), "(".to_string()],
+            vec![r"^\)".to_string(), ")".to_string()],
+            // Error
             vec![r"^.".to_string(), "error".to_string()],
         ]
     })
@@ -59,27 +69,40 @@ pub fn tokenize(expression: String) -> Vec<HashMap<String, String>> {
                         dict.insert("value".to_string(), "null".to_string());
                     }
 
-                    if TEST {
-                        println!("val {} with tag {}", val, tag);
-                    }
                     ex = ex[m.end..].to_string();
                 }
                 break;
             }
         }
 
+        // Skips whitespace and comments
+        if dict["tag"] == "whitespace".to_string() || dict["tag"] == "comment".to_string() {
+            continue;
+        }
+
         // Inserts the line and column counts
         dict.insert("line".to_string(), line.to_string());
         dict.insert("column".to_string(), column.to_string());
 
+        // If default is still present, we reached the end
         if dict["tag"] == "None".to_string() {
+            dict.insert("value".to_string(), "null".to_string());
+            tokens.push(dict.clone());
             break;
         }
 
-        tokens.push(dict);
+        tokens.push(dict.clone());
 
         column += 1;
     }
 
+    if TEST {
+        for i in 0..tokens.len() {
+            println!("val {} with tag {}", tokens[i]["value"], tokens[i]["tag"]);
+        }
+    }
     return tokens;
 }
+
+#[cfg(test)]
+mod tests;
