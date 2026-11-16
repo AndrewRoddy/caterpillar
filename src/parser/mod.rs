@@ -29,6 +29,21 @@ fn parse_factor(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<Stri
         tokens_copy.remove(0);
         return (node, tokens_copy);
     }
+    
+    if token["tag"] == "(" {
+        // Makes copy without first element
+        let mut tokens_copy = tokens.clone();
+        tokens_copy.remove(0);
+        
+        let (node, parsed_tokens) = parse_expression(tokens_copy);
+        
+        // Makes copy without first element again
+        let mut parsed_tokens_copy = parsed_tokens.clone();
+        parsed_tokens_copy.remove(0);
+        
+        // Maybe add checking for syntax error here
+        return (node, parsed_tokens_copy);
+    }
 
     // I need to add ( at some point here
     panic!("Got to the end of parse_factor");
@@ -72,7 +87,9 @@ fn parse_term(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<String
     return (left, tokens_copy);
 }
 
-fn parse_expression(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<String, String>>) {
+pub fn parse_expression(
+    tokens: Vec<HashMap<String, String>>,
+) -> (Node, Vec<HashMap<String, String>>) {
     let (mut left, mut tokens_copy) = parse_term(tokens.clone());
 
     loop {
