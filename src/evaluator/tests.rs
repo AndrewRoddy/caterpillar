@@ -51,8 +51,11 @@ fn test_unary_negative() {
     let (ast, _) = parser::parse_expression(tokens);
     assert_eq!(evaluate(ast), 0.5);
 }
-    
-    //tokens = tokenizer.tokenize("3*-2")
-    //ast, tokens = parser.parse_expression(tokens)
-    //assert evaluate(ast) == -6
+
+#[test]
+fn test_multiplied_unary() {
+    let tokens = tokenizer::tokenize("3*-2".to_string());
+    let (ast, _) = parser::parse_expression(tokens);
+    assert_eq!(evaluate(ast), -6 as f32);
+}    
 
