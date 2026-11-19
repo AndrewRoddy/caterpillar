@@ -1,7 +1,7 @@
 use crate::ast::Node;
 use std::collections::HashMap;
 
-const TEST: bool = false;
+const TEST: bool = true;
 
 pub fn parse(tokens: Vec<HashMap<String, String>>) -> Node {
     let (ast, _output_tokens) = parse_expression(tokens);
@@ -29,18 +29,18 @@ fn parse_factor(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<Stri
         tokens_copy.remove(0);
         return (node, tokens_copy);
     }
-    
+
     if token["tag"] == "(" {
         // Makes copy without first element
         let mut tokens_copy = tokens.clone();
         tokens_copy.remove(0);
-        
+
         let (node, parsed_tokens) = parse_expression(tokens_copy);
-        
+
         // Makes copy without first element again
         let mut parsed_tokens_copy = parsed_tokens.clone();
         parsed_tokens_copy.remove(0);
-        
+
         // Maybe add checking for syntax error here
         return (node, parsed_tokens_copy);
     }
@@ -49,11 +49,32 @@ fn parse_factor(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<Stri
     panic!("Got to the end of parse_factor");
 }
 
-// Done (unless I add -1)
+// Done (unless I add -1) 
 fn parse_unary(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<String, String>>) {
-    let (node, tokens_temp) = parse_factor(tokens);
-    // Done (unless I add -1)
-    return (node, tokens_temp);
+    let mut tokens_temp = tokens.clone();
+    
+    // Parsing unary stuff
+    let token = tokens_temp[0].clone();
+
+    // If there is a unary -
+    if token["tag"] == "-" {
+    
+        // Removes first element from tokens
+        tokens_temp.remove(0);
+        let (operand, parsed_tokens) = parse_unary(tokens_temp.clone());
+        
+        // Makes a new node
+        let left = Node::Fork {
+            op: "unary-".to_string(),
+            left: Box::new(operand.clone()),
+            right: Box::new(operand.clone()),
+        };
+
+        return (left, parsed_tokens);
+    }
+
+    let (node, parsed_tokens) = parse_factor(tokens);
+    return (node, parsed_tokens);
 }
 
 fn parse_term(tokens: Vec<HashMap<String, String>>) -> (Node, Vec<HashMap<String, String>>) {
